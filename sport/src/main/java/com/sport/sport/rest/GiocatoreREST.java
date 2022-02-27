@@ -1,6 +1,7 @@
 package com.sport.sport.rest;
 
 import com.sport.sport.DTO.GiocatoreDTO;
+import com.sport.sport.DTO.SquadraDTO;
 import com.sport.sport.entity.Giocatore;
 import com.sport.sport.service.GiocatoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,25 +22,82 @@ public class GiocatoreREST {
         this.giocatoreService = giocatoreService;
     }
 
+    /**
+     * API per l'inserimento di un nuovo giocatore
+     * @param g giocatore da inserire sotto forma di DTO
+     * @return l'id assegnato all'entità inserita, 0 in caso di errore
+     */
     @PostMapping("insert")
     public ResponseEntity<Long> insert(@RequestBody GiocatoreDTO g) {
+        long id = 0;
         try {
-            Giocatore entity = new Giocatore(g);
-            Long id = giocatoreService.insert(entity);
-            return new ResponseEntity<>(id, HttpStatus.OK);
+            //controlo sul model d'input
+            if(giocatoreService.isValid(g)) {
+                Giocatore entity = new Giocatore(g);
+                id = giocatoreService.insert(entity);
+
+                //controllo sul valore di ritorno
+                if(id>0)
+                    return new ResponseEntity<>(id, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(id, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * API per l'update di un'istanza Giocatore già presente nel DB
+     * @param g istanza GiocatoreDTO con i valori da aggiornare
+     * @return istanza con i dati aggiornati
+     */
+    @PostMapping("update")
+    public ResponseEntity<GiocatoreDTO> update(@RequestBody GiocatoreDTO g){
+        try{
+            if(giocatoreService.isValid(g) && giocatoreService.exists(g.getId())){
+                g = new GiocatoreDTO(giocatoreService.update(g));
+                return new ResponseEntity<>(g, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/find/{id}")
-    public ResponseEntity<GiocatoreDTO> findId(@PathVariable("id") long id){
+    public ResponseEntity<GiocatoreDTO> findId(@PathVariable("id") Long id){
         try {
-            Giocatore entity = giocatoreService.findId(id);
-            GiocatoreDTO dto = new GiocatoreDTO(entity);
-            return new ResponseEntity<>(dto, HttpStatus.OK);
+            boolean idIsValid = (id != null && id > 0);
+            if(idIsValid) {
+                Giocatore entity = giocatoreService.findId(id);
+                GiocatoreDTO dto = new GiocatoreDTO(entity);
+                if(giocatoreService.isValid(dto))
+                    return new ResponseEntity<>(dto, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * rimozione di un'istanza giocatore dal DB tramite ID
+     * @param id
+     * @return
+     */
+    @GetMapping("/del/{id}")
+    public ResponseEntity<String> deleteId(@PathVariable("id") Long id) {
+        try {
+            boolean idIsValid = (id != null && id > 0);
+            //controllo sull'input ID
+            if (idIsValid && giocatoreService.exists(id)) {
+                giocatoreService.delete(giocatoreService.findId(id));
+                return new ResponseEntity<>("Rimozione effettuata con successo", HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>("Errore nell'input ID", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Eccezione nella richiesta", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -53,23 +111,6 @@ public class GiocatoreREST {
             );
             return new ResponseEntity<>(DTOlist, HttpStatus.OK);
         } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/update")
-    public ResponseEntity<Long> update(@RequestBody GiocatoreDTO g){
-
-        //if( g.getId()!=null  && (g.getPresenze() || ))
-
-        long id;
-        try{
-            //input obbligatori
-            if(giocatoreService.exists(g.getId())){
-                id = giocatoreService.insert(new Giocatore(g));
-            } else id = 0;
-            return new ResponseEntity<>(id, HttpStatus.OK);
-        } catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

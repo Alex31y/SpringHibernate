@@ -1,5 +1,6 @@
 package com.sport.sport.service;
 
+import com.sport.sport.DTO.CompetizioneDTO;
 import com.sport.sport.entity.Competizione;
 import com.sport.sport.DAO.CompetizioneDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +31,23 @@ public class CompetizioneServiceImpl implements CompetizioneService{
         List<Competizione> list = new ArrayList<>();
         competizioneRepository.findAll().forEach((c) -> list.add(c));
         return list;
+    }
+
+    @Override
+    public Competizione update(CompetizioneDTO c) {
+        Competizione ent = competizioneRepository.getById(c.getId());
+        ent.setNome(c.getNome());
+        return ent;
+    }
+
+    @Override
+    public boolean isPresent(long id) {
+        return competizioneRepository.existsById(id);
+    }
+
+    @Override
+    public boolean isValid(CompetizioneDTO s) {
+        boolean isNomeValid = (s.getNome().isBlank() || s.getNome().isEmpty());
+        return !isNomeValid;
     }
 }

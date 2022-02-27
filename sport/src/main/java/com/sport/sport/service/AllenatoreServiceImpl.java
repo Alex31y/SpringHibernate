@@ -1,5 +1,7 @@
 package com.sport.sport.service;
 
+import com.sport.sport.DTO.AllenatoreDTO;
+import com.sport.sport.DTO.SquadraDTO;
 import com.sport.sport.entity.Allenatore;
 import com.sport.sport.DAO.AllenatoreDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +36,23 @@ public class AllenatoreServiceImpl implements AllenatoreService{
                 (a) -> list.add(a)
         );
         return list;
+    }
+
+    @Override
+    public Allenatore update(AllenatoreDTO a) {
+        Allenatore ent = allenatoreRepository.getById(a.getId());
+        ent.setNome(a.getNome());
+        return ent;
+    }
+
+    @Override
+    public boolean isPresent(long id) {
+        return allenatoreRepository.existsById(id);
+    }
+
+    @Override
+    public boolean isValid(AllenatoreDTO s) {
+        boolean isNomeValid = (s.getNome().isBlank() || s.getNome().isEmpty());
+        return !isNomeValid;
     }
 }

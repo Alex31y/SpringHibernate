@@ -1,5 +1,6 @@
 package com.sport.sport.service;
 
+import com.sport.sport.DTO.GiocatoreDTO;
 import com.sport.sport.entity.Giocatore;
 import com.sport.sport.DAO.GiocatoreDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,14 @@ public class GiocatoreServiceImpl implements  GiocatoreService{
 
     public Long insert(Giocatore e){ return giocatoreRepo.save(e).getId();}
 
+    @Override
+    public Giocatore update(GiocatoreDTO g) {
+        Giocatore ent = giocatoreRepo.getById(g.getId());
+        ent.setNome(g.getNome());
+        ent.setPresenze(g.getPresenze());
+        return ent;
+    }
+
     public void delete(Giocatore e){ giocatoreRepo.delete(e);}
 
     @Override
@@ -38,10 +47,14 @@ public class GiocatoreServiceImpl implements  GiocatoreService{
 
     @Override
     public boolean exists(long id) {
-        if(giocatoreRepo.existsById(id))
-            return true;
-        else
-            return false;
+        return giocatoreRepo.existsById(id);
+    }
+
+    @Override
+    public boolean isValid(GiocatoreDTO g) {
+        boolean isNomeValid = (g.getNome().isBlank() || g.getNome().isEmpty());
+        boolean isVittorieV = g.getPresenze() > 0;
+        return !isNomeValid && isVittorieV;
     }
 }
 
